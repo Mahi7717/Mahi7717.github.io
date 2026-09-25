@@ -1,3 +1,4 @@
+
 // ================================
 // PERFUME BY HARAM
 // SUPABASE + GOOGLE SHEETS + WHATSAPP
@@ -288,44 +289,65 @@ async function placeOrder(event) {
 
 
     // ============================
-    // SUPABASE
+    // SAVE ORDER IN SUPABASE
     // ============================
 
-const { data, error } = await supabaseClient
-    .from("orders")
-    .insert([
-        {
-            "Customer Name": name,
-            "Phone": phone,
-            "Address": address,
-            "Product": orderedProducts.join(", "),
-            "Quantity": totalQuantity,
-            "Total": total,
-            "Payment Method": paymentMethod,
-            "Status": "Pending"
-        }
-    ]);
+    const { data, error } =
+        await supabaseClient
+            .from("orders")
+            .insert([
+                {
+                    "Customer Name": name,
+                    "Phone": phone,
+                    "Address": address,
+                    "Product": orderedProducts.join(", "),
+                    "Quantity": totalQuantity,
+                    "Total": total,
+                    "Payment Method": paymentMethod,
+                    "Status": "Pending"
+                }
+            ])
+            .select("id")
+            .single();
 
-if (error) {
 
-    console.error("SUPABASE ERROR:", error);
+    if (error) {
 
-    alert(
-        "SUPABASE ERROR:\n\n" +
-        error.message +
-        "\n\nCode: " +
-        error.code
+        console.error(
+            "SUPABASE ERROR:",
+            error
+        );
+
+        alert(
+            "SUPABASE ERROR:\n\n" +
+            error.message +
+            "\n\nCode: " +
+            error.code
+        );
+
+        return;
+    }
+
+
+    // ============================
+    // SUPABASE GENERATED ORDER ID
+    // ============================
+
+    const orderId = data.id;
+
+    console.log(
+        "ORDER ID:",
+        orderId
     );
 
-    return;
-}
 
-console.log("ORDER SAVED:", data);
     // ============================
     // GOOGLE SHEETS
     // ============================
 
     let orderData = {
+
+        orderId: orderId,
 
         name: name,
 
@@ -378,6 +400,10 @@ console.log("ORDER SAVED:", data);
 
         "🛍️ New Order - Perfume by Haram\n\n" +
 
+        "Order ID: " +
+        orderId +
+        "\n\n" +
+
         "Customer: " +
         name +
         "\n" +
@@ -403,7 +429,10 @@ console.log("ORDER SAVED:", data);
         "\n\n" +
 
         "Payment: " +
-        paymentMethod;
+        paymentMethod +
+        "\n\n" +
+
+        "Status: Pending";
 
 
     let whatsappURL =
@@ -423,35 +452,59 @@ console.log("ORDER SAVED:", data);
 
 
     // ============================
-    // SUCCESS
+    // SUCCESS MESSAGE
     // ============================
 
     alert(
+
         "Thank you " +
         name +
         "!\n\n" +
-        "Your order has been received."
+
+        "Your order has been received.\n\n" +
+
+        "Your Order ID: " +
+        orderId +
+        "\n\n" +
+
+        "Please save this Order ID to track your order."
+
     );
 
+
+    // ============================
+    // CLOSE CART
+    // ============================
 
     document.getElementById(
         "cartPopup"
     ).style.display = "none";
 
 
+    // ============================
+    // RESET FORM
+    // ============================
+
     document
         .querySelector(".order-box form")
         .reset();
 
 
+    // ============================
+    // RESET CART
+    // ============================
+
     cart.forEach(function(product) {
+
         product.quantity = 0;
+
     });
 
 
     updateCartCount();
 
     displayCart();
+
 }
 
 
@@ -482,6 +535,7 @@ document
 
                 bankDetails.style.display =
                     "none";
+
             }
 
         }
@@ -524,12 +578,19 @@ document
                     centerY) * 8;
 
                 card.style.transform = `
+
                     perspective(1200px)
+
                     rotateX(${rotateX}deg)
+
                     rotateY(${rotateY}deg)
+
                     translateY(-15px)
+
                     scale(1.02)
+
                 `;
+
             }
         );
 
