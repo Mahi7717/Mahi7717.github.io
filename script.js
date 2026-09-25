@@ -231,6 +231,17 @@ function closeCart() {
 
 
 // ================================
+// GENERATE ORDER ID
+// ================================
+
+function generateOrderId() {
+
+    return "ORD-" + Date.now();
+
+}
+
+
+// ================================
 // PLACE ORDER
 // ================================
 
@@ -239,13 +250,13 @@ async function placeOrder(event) {
     event.preventDefault();
 
     let name =
-        document.getElementById("customerName").value;
+        document.getElementById("customerName").value.trim();
 
     let phone =
-        document.getElementById("customerPhone").value;
+        document.getElementById("customerPhone").value.trim();
 
     let address =
-        document.getElementById("customerAddress").value;
+        document.getElementById("customerAddress").value.trim();
 
     let paymentMethod =
         document.getElementById("paymentMethod").value;
@@ -257,6 +268,10 @@ async function placeOrder(event) {
 
     let total = 0;
 
+
+    // ============================
+    // CALCULATE ORDER
+    // ============================
 
     cart.forEach(function(product) {
 
@@ -273,10 +288,15 @@ async function placeOrder(event) {
             total +=
                 product.price *
                 product.quantity;
+
         }
 
     });
 
+
+    // ============================
+    // CHECK CART
+    // ============================
 
     if (totalQuantity === 0) {
 
@@ -289,27 +309,72 @@ async function placeOrder(event) {
 
 
     // ============================
+    // CREATE ORDER ID
+    // ============================
+
+    const orderId =
+        generateOrderId();
+
+
+    console.log(
+        "ORDER ID:",
+        orderId
+    );
+
+
+    // ============================
     // SAVE ORDER IN SUPABASE
     // ============================
 
-    const { data, error } =
+    // IMPORTANT:
+    // id column is int8, so we convert
+    // the numeric part of ORD- into a number.
+
+    const numericOrderId =
+        Number(
+            orderId.replace("ORD-", "")
+        );
+
+
+    const { error } =
         await supabaseClient
             .from("orders")
             .insert([
                 {
-                    "Customer Name": name,
-                    "Phone": phone,
-                    "Address": address,
-                    "Product": orderedProducts.join(", "),
-                    "Quantity": totalQuantity,
-                    "Total": total,
-                    "Payment Method": paymentMethod,
-                    "Status": "Pending"
-                }
-            ])
-            .select("id")
-            .single();
 
+                    id: numericOrderId,
+
+                    "Customer Name":
+                        name,
+
+                    "Phone":
+                        phone,
+
+                    "Address":
+                        address,
+
+                    "Product":
+                        orderedProducts.join(", "),
+
+                    "Quantity":
+                        totalQuantity,
+
+                    "Total":
+                        total,
+
+                    "Payment Method":
+                        paymentMethod,
+
+                    "Status":
+                        "Pending"
+
+                }
+            ]);
+
+
+    // ============================
+    // SUPABASE ERROR
+    // ============================
 
     if (error) {
 
@@ -330,30 +395,22 @@ async function placeOrder(event) {
 
 
     // ============================
-    // SUPABASE GENERATED ORDER ID
-    // ============================
-
-    const orderId = data.id;
-
-    console.log(
-        "ORDER ID:",
-        orderId
-    );
-
-
-    // ============================
     // GOOGLE SHEETS
     // ============================
 
     let orderData = {
 
-        orderId: orderId,
+        orderId:
+            orderId,
 
-        name: name,
+        name:
+            name,
 
-        phone: phone,
+        phone:
+            phone,
 
-        address: address,
+        address:
+            address,
 
         products:
             orderedProducts.join(", "),
@@ -366,16 +423,21 @@ async function placeOrder(event) {
 
         paymentMethod:
             paymentMethod
+
     };
 
 
     fetch(
         "https://script.google.com/macros/s/AKfycbwKbuwT4wUWa8TGUWAjBECtATr0G74_f4lGlRwFDIt4M8VE43CWYt1jgNM9uF5kHvLn-Q/exec",
         {
+
             method: "POST",
 
             body:
-                new URLSearchParams(orderData)
+                new URLSearchParams(
+                    orderData
+                )
+
         }
     )
     .catch(function(error) {
@@ -388,9 +450,9 @@ async function placeOrder(event) {
     });
 
 
-    // ============================
+    // ================================
     // WHATSAPP
-    // ============================
+    // ================================
 
     let whatsappNumber =
         "923112556930";
@@ -438,8 +500,11 @@ async function placeOrder(event) {
     let whatsappURL =
 
         "https://wa.me/" +
+
         whatsappNumber +
+
         "?text=" +
+
         encodeURIComponent(
             whatsappMessage
         );
@@ -451,9 +516,9 @@ async function placeOrder(event) {
     );
 
 
-    // ============================
+    // ================================
     // SUCCESS MESSAGE
-    // ============================
+    // ================================
 
     alert(
 
@@ -472,27 +537,27 @@ async function placeOrder(event) {
     );
 
 
-    // ============================
+    // ================================
     // CLOSE CART
-    // ============================
+    // ================================
 
     document.getElementById(
         "cartPopup"
     ).style.display = "none";
 
 
-    // ============================
+    // ================================
     // RESET FORM
-    // ============================
+    // ================================
 
     document
         .querySelector(".order-box form")
         .reset();
 
 
-    // ============================
+    // ================================
     // RESET CART
-    // ============================
+    // ================================
 
     cart.forEach(function(product) {
 
@@ -558,10 +623,12 @@ document
                     card.getBoundingClientRect();
 
                 const x =
-                    e.clientX - rect.left;
+                    e.clientX -
+                    rect.left;
 
                 const y =
-                    e.clientY - rect.top;
+                    e.clientY -
+                    rect.top;
 
                 const centerX =
                     rect.width / 2;
