@@ -1,4 +1,3 @@
-
 // ================================
 // PERFUME BY HARAM
 // SUPABASE + GOOGLE SHEETS + WHATSAPP
@@ -249,18 +248,38 @@ async function placeOrder(event) {
 
     event.preventDefault();
 
+
+    // ============================
+    // CUSTOMER DETAILS
+    // ============================
+
     let name =
-        document.getElementById("customerName").value.trim();
+        document
+            .getElementById("customerName")
+            .value
+            .trim();
 
     let phone =
-        document.getElementById("customerPhone").value.trim();
+        document
+            .getElementById("customerPhone")
+            .value
+            .trim();
 
     let address =
-        document.getElementById("customerAddress").value.trim();
+        document
+            .getElementById("customerAddress")
+            .value
+            .trim();
 
     let paymentMethod =
-        document.getElementById("paymentMethod").value;
+        document
+            .getElementById("paymentMethod")
+            .value;
 
+
+    // ============================
+    // ORDER CALCULATION
+    // ============================
 
     let orderedProducts = [];
 
@@ -268,10 +287,6 @@ async function placeOrder(event) {
 
     let total = 0;
 
-
-    // ============================
-    // CALCULATE ORDER
-    // ============================
 
     cart.forEach(function(product) {
 
@@ -283,12 +298,12 @@ async function placeOrder(event) {
                 product.quantity
             );
 
-            totalQuantity += product.quantity;
+            totalQuantity +=
+                product.quantity;
 
             total +=
                 product.price *
                 product.quantity;
-
         }
 
     });
@@ -322,19 +337,19 @@ async function placeOrder(event) {
     );
 
 
+    // Numeric part for Supabase int8 id
+    const numericOrderId =
+        Number(
+            orderId.replace(
+                "ORD-",
+                ""
+            )
+        );
+
+
     // ============================
     // SAVE ORDER IN SUPABASE
     // ============================
-
-    // IMPORTANT:
-    // id column is int8, so we convert
-    // the numeric part of ORD- into a number.
-
-    const numericOrderId =
-        Number(
-            orderId.replace("ORD-", "")
-        );
-
 
     const { error } =
         await supabaseClient
@@ -342,7 +357,8 @@ async function placeOrder(event) {
             .insert([
                 {
 
-                    id: numericOrderId,
+                    id:
+                        numericOrderId,
 
                     "Customer Name":
                         name,
@@ -384,10 +400,15 @@ async function placeOrder(event) {
         );
 
         alert(
-            "SUPABASE ERROR:\n\n" +
+
+            "ORDER SAVE ERROR:\n\n" +
+
             error.message +
+
             "\n\nCode: " +
+
             error.code
+
         );
 
         return;
@@ -428,10 +449,13 @@ async function placeOrder(event) {
 
 
     fetch(
+
         "https://script.google.com/macros/s/AKfycbwKbuwT4wUWa8TGUWAjBECtATr0G74_f4lGlRwFDIt4M8VE43CWYt1jgNM9uF5kHvLn-Q/exec",
+
         {
 
-            method: "POST",
+            method:
+                "POST",
 
             body:
                 new URLSearchParams(
@@ -439,7 +463,16 @@ async function placeOrder(event) {
                 )
 
         }
+
     )
+    .then(function(response) {
+
+        console.log(
+            "Google Sheets response:",
+            response
+        );
+
+    })
     .catch(function(error) {
 
         console.error(
@@ -450,9 +483,9 @@ async function placeOrder(event) {
     });
 
 
-    // ================================
+    // ============================
     // WHATSAPP
-    // ================================
+    // ============================
 
     let whatsappNumber =
         "923112556930";
@@ -516,20 +549,25 @@ async function placeOrder(event) {
     );
 
 
-    // ================================
+    // ============================
     // SUCCESS MESSAGE
-    // ================================
+    // ============================
 
     alert(
 
         "Thank you " +
         name +
+
         "!\n\n" +
 
-        "Your order has been received.\n\n" +
+        "Your order has been received." +
+
+        "\n\n" +
 
         "Your Order ID: " +
+
         orderId +
+
         "\n\n" +
 
         "Please save this Order ID to track your order."
@@ -537,27 +575,27 @@ async function placeOrder(event) {
     );
 
 
-    // ================================
+    // ============================
     // CLOSE CART
-    // ================================
+    // ============================
 
-    document.getElementById(
-        "cartPopup"
-    ).style.display = "none";
+    document
+        .getElementById("cartPopup")
+        .style.display = "none";
 
 
-    // ================================
+    // ============================
     // RESET FORM
-    // ================================
+    // ============================
 
     document
         .querySelector(".order-box form")
         .reset();
 
 
-    // ================================
+    // ============================
     // RESET CART
-    // ================================
+    // ============================
 
     cart.forEach(function(product) {
 
