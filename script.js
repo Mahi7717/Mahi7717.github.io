@@ -110,6 +110,10 @@ function displayCart() {
     let cartTotal =
         document.getElementById("cartTotal");
 
+    if (!cartItems || !cartTotal) {
+        return;
+    }
+
     cartItems.innerHTML = "";
 
     let total = 0;
@@ -237,7 +241,6 @@ async function placeOrder(event) {
 
     event.preventDefault();
 
-
     // ============================
     // CUSTOMER DETAILS
     // ============================
@@ -313,7 +316,7 @@ async function placeOrder(event) {
 
 
     // ============================
-    // SAVE ORDER USING SUPABASE RPC
+    // SAVE ORDER USING RPC
     // ============================
 
     console.log(
@@ -362,4 +365,345 @@ async function placeOrder(event) {
             error
         );
 
-        alert
+        alert(
+
+            "ORDER SAVE ERROR:\n\n" +
+
+            error.message +
+
+            "\n\nCode: " +
+
+            error.code
+
+        );
+
+        return;
+    }
+
+
+    // ============================
+    // CREATE CUSTOMER ORDER ID
+    // ============================
+
+    const orderId =
+        "ORD-" + data;
+
+
+    console.log(
+        "Order successfully created:",
+        orderId
+    );
+
+
+    // ============================
+    // GOOGLE SHEETS
+    // ============================
+
+    let orderData = {
+
+        orderId:
+            orderId,
+
+        name:
+            name,
+
+        phone:
+            phone,
+
+        address:
+            address,
+
+        products:
+            orderedProducts.join(", "),
+
+        quantity:
+            totalQuantity,
+
+        total:
+            total,
+
+        paymentMethod:
+            paymentMethod
+
+    };
+
+
+    fetch(
+
+        "https://script.google.com/macros/s/AKfycbwKbuwT4wUWa8TGUWAjBECtATr0G74_f4lGlRwFDIt4M8VE43CWYt1jgNM9uF5kHvLn-Q/exec",
+
+        {
+
+            method:
+                "POST",
+
+            body:
+                new URLSearchParams(
+                    orderData
+                )
+
+        }
+
+    )
+    .then(function(response) {
+
+        console.log(
+            "Google Sheets response:",
+            response
+        );
+
+    })
+    .catch(function(error) {
+
+        console.error(
+            "Google Sheets Error:",
+            error
+        );
+
+    });
+
+
+    // ============================
+    // WHATSAPP
+    // ============================
+
+    let whatsappNumber =
+        "923112556930";
+
+
+    let whatsappMessage =
+
+        "🛍️ New Order - Perfume by Haram\n\n" +
+
+        "Order Tracking ID: " +
+        orderId +
+        "\n\n" +
+
+        "Customer: " +
+        name +
+        "\n" +
+
+        "Phone: " +
+        phone +
+        "\n" +
+
+        "Address: " +
+        address +
+        "\n\n" +
+
+        "Products: " +
+        orderedProducts.join(", ") +
+        "\n" +
+
+        "Total Quantity: " +
+        totalQuantity +
+        "\n" +
+
+        "Total Bill: Rs. " +
+        total +
+        "\n\n" +
+
+        "Payment: " +
+        paymentMethod +
+        "\n\n" +
+
+        "Status: Pending";
+
+
+    let whatsappURL =
+
+        "https://wa.me/" +
+
+        whatsappNumber +
+
+        "?text=" +
+
+        encodeURIComponent(
+            whatsappMessage
+        );
+
+
+    window.open(
+        whatsappURL,
+        "_blank"
+    );
+
+
+    // ============================
+    // CUSTOMER SUCCESS MESSAGE
+    // ============================
+
+    alert(
+
+        "Thank you " +
+        name +
+
+        "!\n\n" +
+
+        "Your order has been received." +
+
+        "\n\n" +
+
+        "Your Order Tracking ID:\n" +
+
+        orderId +
+
+        "\n\n" +
+
+        "Please save this ID to track your order."
+
+    );
+
+
+    // ============================
+    // CLOSE CART
+    // ============================
+
+    document
+        .getElementById("cartPopup")
+        .style.display = "none";
+
+
+    // ============================
+    // RESET FORM
+    // ============================
+
+    let orderForm =
+        document.querySelector(
+            ".order-box form"
+        );
+
+    if (orderForm) {
+        orderForm.reset();
+    }
+
+
+    // ============================
+    // RESET CART
+    // ============================
+
+    cart.forEach(function(product) {
+
+        product.quantity = 0;
+
+    });
+
+
+    updateCartCount();
+
+    displayCart();
+
+}
+
+
+// ================================
+// PAYMENT METHOD
+// ================================
+
+let paymentMethodElement =
+    document.getElementById(
+        "paymentMethod"
+    );
+
+if (paymentMethodElement) {
+
+    paymentMethodElement.addEventListener(
+        "change",
+        function() {
+
+            let bankDetails =
+                document.getElementById(
+                    "bankDetails"
+                );
+
+            if (!bankDetails) {
+                return;
+            }
+
+            if (
+                this.value ===
+                "Bank Transfer"
+            ) {
+
+                bankDetails.style.display =
+                    "block";
+
+            } else {
+
+                bankDetails.style.display =
+                    "none";
+
+            }
+
+        }
+    );
+
+}
+
+
+// ================================
+// 3D PERFUME CARD EFFECT
+// ================================
+
+document
+    .querySelectorAll(".perfume-card")
+    .forEach(function(card) {
+
+        card.addEventListener(
+            "mousemove",
+            function(e) {
+
+                const rect =
+                    card.getBoundingClientRect();
+
+                const x =
+                    e.clientX -
+                    rect.left;
+
+                const y =
+                    e.clientY -
+                    rect.top;
+
+                const centerX =
+                    rect.width / 2;
+
+                const centerY =
+                    rect.height / 2;
+
+                const rotateY =
+                    ((x - centerX) /
+                    centerX) * 8;
+
+                const rotateX =
+                    ((centerY - y) /
+                    centerY) * 8;
+
+                card.style.transform = `
+
+                    perspective(1200px)
+
+                    rotateX(${rotateX}deg)
+
+                    rotateY(${rotateY}deg)
+
+                    translateY(-15px)
+
+                    scale(1.02)
+
+                `;
+
+            }
+        );
+
+
+        card.addEventListener(
+            "mouseleave",
+            function() {
+
+                card.style.transform = "";
+
+            }
+        );
+
+    });
+
