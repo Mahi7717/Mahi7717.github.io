@@ -321,4 +321,3 @@ async function logoutAdmin() {
         "block";
 
 }
-```
