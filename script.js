@@ -176,7 +176,7 @@ function displayCart() {
 
 
 // ================================
-// INCREASE
+// INCREASE QUANTITY
 // ================================
 
 function increaseQuantity(index) {
@@ -190,7 +190,7 @@ function increaseQuantity(index) {
 
 
 // ================================
-// DECREASE
+// DECREASE QUANTITY
 // ================================
 
 function decreaseQuantity(index) {
@@ -206,7 +206,7 @@ function decreaseQuantity(index) {
 
 
 // ================================
-// REMOVE
+// REMOVE ITEM
 // ================================
 
 function removeItem(index) {
@@ -226,17 +226,6 @@ function removeItem(index) {
 function closeCart() {
 
     document.getElementById("cartPopup").style.display = "none";
-}
-
-
-// ================================
-// GENERATE ORDER ID
-// ================================
-
-function generateOrderId() {
-
-    return "ORD-" + Date.now();
-
 }
 
 
@@ -324,68 +313,42 @@ async function placeOrder(event) {
 
 
     // ============================
-    // CREATE ORDER ID
+    // SAVE ORDER USING SUPABASE RPC
     // ============================
 
-    const orderId =
-        generateOrderId();
-
-
     console.log(
-        "ORDER ID:",
-        orderId
+        "Saving order..."
     );
 
 
-    // Numeric part for Supabase int8 id
-    const numericOrderId =
-        Number(
-            orderId.replace(
-                "ORD-",
-                ""
-            )
+    const { data, error } =
+        await supabaseClient.rpc(
+            "place_order",
+            {
+
+                p_customer_name:
+                    name,
+
+                p_phone:
+                    phone,
+
+                p_address:
+                    address,
+
+                p_product:
+                    orderedProducts.join(", "),
+
+                p_quantity:
+                    totalQuantity,
+
+                p_total:
+                    total,
+
+                p_payment_method:
+                    paymentMethod
+
+            }
         );
-
-
-    // ============================
-    // SAVE ORDER IN SUPABASE
-    // ============================
-
-    const { error } =
-        await supabaseClient
-            .from("orders")
-            .insert([
-                {
-
-                    id:
-                        numericOrderId,
-
-                    "Customer Name":
-                        name,
-
-                    "Phone":
-                        phone,
-
-                    "Address":
-                        address,
-
-                    "Product":
-                        orderedProducts.join(", "),
-
-                    "Quantity":
-                        totalQuantity,
-
-                    "Total":
-                        total,
-
-                    "Payment Method":
-                        paymentMethod,
-
-                    "Status":
-                        "Pending"
-
-                }
-            ]);
 
 
     // ============================
@@ -399,314 +362,4 @@ async function placeOrder(event) {
             error
         );
 
-        alert(
-
-            "ORDER SAVE ERROR:\n\n" +
-
-            error.message +
-
-            "\n\nCode: " +
-
-            error.code
-
-        );
-
-        return;
-    }
-
-
-    // ============================
-    // GOOGLE SHEETS
-    // ============================
-
-    let orderData = {
-
-        orderId:
-            orderId,
-
-        name:
-            name,
-
-        phone:
-            phone,
-
-        address:
-            address,
-
-        products:
-            orderedProducts.join(", "),
-
-        quantity:
-            totalQuantity,
-
-        total:
-            total,
-
-        paymentMethod:
-            paymentMethod
-
-    };
-
-
-    fetch(
-
-        "https://script.google.com/macros/s/AKfycbwKbuwT4wUWa8TGUWAjBECtATr0G74_f4lGlRwFDIt4M8VE43CWYt1jgNM9uF5kHvLn-Q/exec",
-
-        {
-
-            method:
-                "POST",
-
-            body:
-                new URLSearchParams(
-                    orderData
-                )
-
-        }
-
-    )
-    .then(function(response) {
-
-        console.log(
-            "Google Sheets response:",
-            response
-        );
-
-    })
-    .catch(function(error) {
-
-        console.error(
-            "Google Sheets Error:",
-            error
-        );
-
-    });
-
-
-    // ============================
-    // WHATSAPP
-    // ============================
-
-    let whatsappNumber =
-        "923112556930";
-
-
-    let whatsappMessage =
-
-        "🛍️ New Order - Perfume by Haram\n\n" +
-
-        "Order ID: " +
-        orderId +
-        "\n\n" +
-
-        "Customer: " +
-        name +
-        "\n" +
-
-        "Phone: " +
-        phone +
-        "\n" +
-
-        "Address: " +
-        address +
-        "\n\n" +
-
-        "Products: " +
-        orderedProducts.join(", ") +
-        "\n" +
-
-        "Total Quantity: " +
-        totalQuantity +
-        "\n" +
-
-        "Total Bill: Rs. " +
-        total +
-        "\n\n" +
-
-        "Payment: " +
-        paymentMethod +
-        "\n\n" +
-
-        "Status: Pending";
-
-
-    let whatsappURL =
-
-        "https://wa.me/" +
-
-        whatsappNumber +
-
-        "?text=" +
-
-        encodeURIComponent(
-            whatsappMessage
-        );
-
-
-    window.open(
-        whatsappURL,
-        "_blank"
-    );
-
-
-    // ============================
-    // SUCCESS MESSAGE
-    // ============================
-
-    alert(
-
-        "Thank you " +
-        name +
-
-        "!\n\n" +
-
-        "Your order has been received." +
-
-        "\n\n" +
-
-        "Your Order ID: " +
-
-        orderId +
-
-        "\n\n" +
-
-        "Please save this Order ID to track your order."
-
-    );
-
-
-    // ============================
-    // CLOSE CART
-    // ============================
-
-    document
-        .getElementById("cartPopup")
-        .style.display = "none";
-
-
-    // ============================
-    // RESET FORM
-    // ============================
-
-    document
-        .querySelector(".order-box form")
-        .reset();
-
-
-    // ============================
-    // RESET CART
-    // ============================
-
-    cart.forEach(function(product) {
-
-        product.quantity = 0;
-
-    });
-
-
-    updateCartCount();
-
-    displayCart();
-
-}
-
-
-// ================================
-// PAYMENT METHOD
-// ================================
-
-document
-    .getElementById("paymentMethod")
-    .addEventListener(
-        "change",
-        function() {
-
-            let bankDetails =
-                document.getElementById(
-                    "bankDetails"
-                );
-
-            if (
-                this.value ===
-                "Bank Transfer"
-            ) {
-
-                bankDetails.style.display =
-                    "block";
-
-            } else {
-
-                bankDetails.style.display =
-                    "none";
-
-            }
-
-        }
-    );
-
-
-// ================================
-// 3D PERFUME CARD EFFECT
-// ================================
-
-document
-    .querySelectorAll(".perfume-card")
-    .forEach(function(card) {
-
-        card.addEventListener(
-            "mousemove",
-            function(e) {
-
-                const rect =
-                    card.getBoundingClientRect();
-
-                const x =
-                    e.clientX -
-                    rect.left;
-
-                const y =
-                    e.clientY -
-                    rect.top;
-
-                const centerX =
-                    rect.width / 2;
-
-                const centerY =
-                    rect.height / 2;
-
-                const rotateY =
-                    ((x - centerX) /
-                    centerX) * 8;
-
-                const rotateX =
-                    ((centerY - y) /
-                    centerY) * 8;
-
-                card.style.transform = `
-
-                    perspective(1200px)
-
-                    rotateX(${rotateX}deg)
-
-                    rotateY(${rotateY}deg)
-
-                    translateY(-15px)
-
-                    scale(1.02)
-
-                `;
-
-            }
-        );
-
-
-        card.addEventListener(
-            "mouseleave",
-            function() {
-
-                card.style.transform = "";
-
-            }
-        );
-
-    });
+        alert
