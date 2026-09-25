@@ -21,7 +21,6 @@ const supabaseClient =
 // ================================
 
 let cart = [
-
     {
         name: "Olive Blossom",
         price: 3500,
@@ -39,7 +38,6 @@ let cart = [
         price: 4500,
         quantity: 0
     }
-
 ];
 
 
@@ -141,6 +139,7 @@ function displayCart() {
                         Quantity:
 
                         <button
+                            type="button"
                             onclick="decreaseQuantity(${index})">
                             −
                         </button>
@@ -150,6 +149,7 @@ function displayCart() {
                         </strong>
 
                         <button
+                            type="button"
                             onclick="increaseQuantity(${index})">
                             +
                         </button>
@@ -162,6 +162,7 @@ function displayCart() {
                     </p>
 
                     <button
+                        type="button"
                         onclick="removeItem(${index})">
                         Remove
                     </button>
@@ -241,10 +242,6 @@ async function placeOrder(event) {
 
     event.preventDefault();
 
-    // ============================
-    // CUSTOMER DETAILS
-    // ============================
-
     let name =
         document
             .getElementById("customerName")
@@ -268,10 +265,6 @@ async function placeOrder(event) {
             .getElementById("paymentMethod")
             .value;
 
-
-    // ============================
-    // ORDER CALCULATION
-    // ============================
 
     let orderedProducts = [];
 
@@ -301,10 +294,6 @@ async function placeOrder(event) {
     });
 
 
-    // ============================
-    // CHECK CART
-    // ============================
-
     if (totalQuantity === 0) {
 
         alert(
@@ -316,47 +305,26 @@ async function placeOrder(event) {
 
 
     // ============================
-    // SAVE ORDER USING RPC
+    // SAVE TO SUPABASE
     // ============================
 
-    console.log(
-        "Saving order..."
-    );
+    console.log("Saving order...");
 
 
     const { data, error } =
         await supabaseClient.rpc(
             "place_order",
             {
-
-                p_customer_name:
-                    name,
-
-                p_phone:
-                    phone,
-
-                p_address:
-                    address,
-
-                p_product:
-                    orderedProducts.join(", "),
-
-                p_quantity:
-                    totalQuantity,
-
-                p_total:
-                    total,
-
-                p_payment_method:
-                    paymentMethod
-
+                p_customer_name: name,
+                p_phone: phone,
+                p_address: address,
+                p_product: orderedProducts.join(", "),
+                p_quantity: totalQuantity,
+                p_total: total,
+                p_payment_method: paymentMethod
             }
         );
 
-
-    // ============================
-    // SUPABASE ERROR
-    // ============================
 
     if (error) {
 
@@ -366,15 +334,10 @@ async function placeOrder(event) {
         );
 
         alert(
-
             "ORDER SAVE ERROR:\n\n" +
-
             error.message +
-
             "\n\nCode: " +
-
             error.code
-
         );
 
         return;
@@ -382,7 +345,7 @@ async function placeOrder(event) {
 
 
     // ============================
-    // CREATE CUSTOMER ORDER ID
+    // ORDER ID
     // ============================
 
     const orderId =
@@ -401,17 +364,13 @@ async function placeOrder(event) {
 
     let orderData = {
 
-        orderId:
-            orderId,
+        orderId: orderId,
 
-        name:
-            name,
+        name: name,
 
-        phone:
-            phone,
+        phone: phone,
 
-        address:
-            address,
+        address: address,
 
         products:
             orderedProducts.join(", "),
@@ -424,26 +383,19 @@ async function placeOrder(event) {
 
         paymentMethod:
             paymentMethod
-
     };
 
 
     fetch(
-
         "https://script.google.com/macros/s/AKfycbwKbuwT4wUWa8TGUWAjBECtATr0G74_f4lGlRwFDIt4M8VE43CWYt1jgNM9uF5kHvLn-Q/exec",
-
         {
-
-            method:
-                "POST",
+            method: "POST",
 
             body:
                 new URLSearchParams(
                     orderData
                 )
-
         }
-
     )
     .then(function(response) {
 
@@ -513,11 +465,8 @@ async function placeOrder(event) {
     let whatsappURL =
 
         "https://wa.me/" +
-
         whatsappNumber +
-
         "?text=" +
-
         encodeURIComponent(
             whatsappMessage
         );
@@ -530,18 +479,16 @@ async function placeOrder(event) {
 
 
     // ============================
-    // CUSTOMER SUCCESS MESSAGE
+    // SUCCESS
     // ============================
 
     alert(
 
         "Thank you " +
         name +
-
         "!\n\n" +
 
         "Your order has been received." +
-
         "\n\n" +
 
         "Your Order Tracking ID:\n" +
@@ -555,18 +502,10 @@ async function placeOrder(event) {
     );
 
 
-    // ============================
-    // CLOSE CART
-    // ============================
-
-    document
-        .getElementById("cartPopup")
-        .style.display = "none";
+    closeCart();
 
 
-    // ============================
     // RESET FORM
-    // ============================
 
     let orderForm =
         document.querySelector(
@@ -578,21 +517,16 @@ async function placeOrder(event) {
     }
 
 
-    // ============================
     // RESET CART
-    // ============================
 
     cart.forEach(function(product) {
-
         product.quantity = 0;
-
     });
 
 
     updateCartCount();
 
     displayCart();
-
 }
 
 
@@ -632,12 +566,10 @@ if (paymentMethodElement) {
 
                 bankDetails.style.display =
                     "none";
-
             }
 
         }
     );
-
 }
 
 
@@ -691,7 +623,6 @@ document
                     scale(1.02)
 
                 `;
-
             }
         );
 
@@ -706,4 +637,3 @@ document
         );
 
     });
-
